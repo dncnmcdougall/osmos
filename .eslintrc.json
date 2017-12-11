@@ -1,0 +1,113 @@
+{
+    "env": {
+        "es6": true,
+        "node": true
+    },
+    "extends": "eslint:recommended",
+    "parserOptions": {
+        "ecmaVersion": 6,
+        "ecmaFeatures": {
+            "experimentalObjectRestSpread": true,
+            "jsx": true
+        }
+    },
+    "plugins": [
+        "react"
+    ],
+    "rules": {
+        "no-console": [
+            "warn"
+        ],
+        "no-unused-vars": [
+            "error", 
+            {
+                "args": "none"
+            }
+        ],
+        "no-fallthrough": [
+            "error"
+        ],
+        "no-eval": [
+            "error"
+        ],
+        "no-implied-eval": [
+            "error"
+        ],
+        "no-invalid-this": [
+            "error"
+        ],
+        "no-const-assign": [
+            "error"
+        ],
+        "no-new": [
+            "error"
+        ],
+        "radix": [
+            "error",
+            "always"
+        ],
+        "indent": [
+            "error",
+            4,
+            {
+                "SwitchCase": 1
+            }
+        ],
+        "linebreak-style": [
+            "error",
+            "unix"
+        ],
+        "curly":[
+            "error",
+            "all"
+        ],
+        "quotes": [
+            "error",
+            "single"
+        ],
+        "semi": [
+            "error",
+            "always"
+        ],
+        "handle-callback-err": [
+            "error",
+            "error"
+        ],
+        "new-cap": [
+            "error"
+        ],
+        "no-lonely-if": [
+            "error"
+        ],
+        "arrow-body-style": [
+            "error",
+            "always"
+        ],
+        "arrow-parens": [
+            "error",
+            "always"
+        ],
+        "arrow-spacing": [
+            "error"
+        ],
+        "complexity": [
+            "error",
+            10
+        ],
+        "max-depth": [
+            "error",
+            4
+        ],
+        "max-nested-callbacks": [
+            "error", 
+            4
+        ],
+        "max-len": [
+            "error",
+            130
+        ],
+        "default-case": [
+            "error"
+        ]
+    }
+}
