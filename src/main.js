@@ -23,9 +23,10 @@ var blobCnt = 10;
 var maxMass = 1000;
 var blobs = [];
 
-    var momentum = 0;
+var momentum = 0;
 for( var i = 0; i < blobCnt; i++) {
     blobs.push( Blob.randomise(  maxMass, maxPos, Vector.toVec(500, 500) ) );
+    momentum = momentum + Blob.momentum( blobs[i] );
 }
 
 var interval = 200;
