@@ -33,8 +33,8 @@ var interval = 200;
 var amount = 0.05;
 var position = 0;
 var range = {
-    'min': 0,
-    'max': 10000
+    'min': momentum/2,
+    'max': momentum*2
 }
 
 
@@ -62,6 +62,7 @@ setInterval( () => {
             blobs[j] = tmpBlobs[1];
         }
     }
+	momentum=0
     for( var i = 0; i < blobCnt; i++) {
         if ( blobs[i].mass <= 0 ) {
             continue;
@@ -70,6 +71,12 @@ setInterval( () => {
         momentum = momentum + Blob.momentum( blobs[i] );
     }
     MomentumTA.textContent = momentum;
+	console.log(range);
+    var val = (momentum - range.min)/(range.max - range.min);
+	console.log(momentum, val);
+    gctx.fillStyle = "#0011aa";
+    gctx.fillRect(position*5, val*maxPos.y, 5,10);
+    position++;
 
 }, interval);
 
