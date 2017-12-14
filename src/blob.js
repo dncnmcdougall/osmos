@@ -97,6 +97,9 @@ const Blob= {
 
     return [ newBlob1, newBlob2 ];
 },
+'momentum': function(state) {
+    return state.mass * Vector.length(state.velocity);
+},
 'radius': function(state) {
     return Math.sqrt(state.mass/Math.PI);
 },

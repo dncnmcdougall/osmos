@@ -3,26 +3,39 @@
 // import {WorldModel} from ( 'src/world.js');
 
 
-var canvas = document.getElementById('canvas');
 const body = document.getElementsByTagName('body')[0];
+
+var mementumTA = document.getElementById('MomentumTA');
 
 var maxPos = Vector.toVec( 500, 500);
 
+var canvas = document.getElementById('canvas');
 canvas.width = maxPos.x;
 canvas.height = maxPos.y;
-
 var ctx = canvas.getContext('2d');
+
+var graph = document.getElementById('graph');
+graph.width = maxPos.x;
+graph.height = maxPos.y;
+var gctx = graph.getContext('2d');
 
 var blobCnt = 10;
 var maxMass = 1000;
 var blobs = [];
 
+    var momentum = 0;
 for( var i = 0; i < blobCnt; i++) {
     blobs.push( Blob.randomise(  maxMass, maxPos, Vector.toVec(500, 500) ) );
 }
 
-var interval = 100;
+var interval = 200;
 var amount = 0.05;
+var position = 0;
+var range = {
+    'min': 0,
+    'max': 10000
+}
+
 
 setInterval( () => {
     console.log('tick');
@@ -53,6 +66,9 @@ setInterval( () => {
             continue;
         }
         Blob.draw( blobs[i], ctx );
+        momentum = momentum + Blob.momentum( blobs[i] );
     }
+    MomentumTA.textContent = momentum;
+
 }, interval);
 
