@@ -1,6 +1,5 @@
 /* eslint-env browser*/
 
-
 const Blob= {
 
 'randomise': function( maxMass, maxVel, maxPos) {
@@ -17,6 +16,7 @@ const Blob= {
     };
 },
 'gain': function(state, vec, mass) {
+
     return Object.assign({}, state, {
         'mass':state.mass+mass,
         'velocity':Vector.weightedAdd(state.velocity, state.mass, vec, mass)
@@ -53,7 +53,7 @@ const Blob= {
     }
     return newState;
 },
-'overlap': function( blob1, blob2) {
+'collide': function( blob1, blob2) {
     var r1 = this.radius( blob1 );
     var r2 = this.radius( blob2 );
     var distance = Vector.distance( blob1.position, blob2.position);
@@ -62,43 +62,59 @@ const Blob= {
         return [blob1, blob2];
     }
 
-
     var overlap = (r1 + r2) - distance;
     var overlap2 = Math.pow(overlap, 2);
 
-    var massOverlap1 = Math.PI* (2*overlap*r1 - overlap2);
-    var massOverlap2 = Math.PI* (2*overlap*r2 - overlap2);
-
-    if ( blob1.mass > blob2.mass ) {
-        if ( distance < r1 ) {
-            var newBlob1 = this.gain( blob1, blob2.velocity, blob2.mass);
-            var newBlob2 = Object.assign({}, blob2, {
-                'mass': 0
-            });
-        } else {
-            var newBlob1 = this.gain( blob1, blob2.velocity, massOverlap2);
-            var newBlob2 = Object.assign({}, blob2, {
-                'mass': blob2.mass - massOverlap2
-            });
-        }
-    } else {
-        if ( distance < r2 ) {
-            var newBlob2 = this.gain( blob2, blob1.velocity, blob1.mass);
-            var newBlob1 = Object.assign({}, blob1, {
-                'mass': 0
-            });
-        } else {
-            var newBlob2 = this.gain( blob2, blob1.velocity, massOverlap1);
-            var newBlob1 = Object.assign({}, blob1, {
-                'mass': blob1.mass - massOverlap1
-            });
-        }
+    if ( r1 >= r2 && distance <= r1 ) {
+        var newBlob1 = this.gain( blob1, blob2.velocity, blob2.mass);
+        var newBlob2 = Object.assign({}, blob2, {
+            'mass': 0
+        });
+    }
+    else if ( r1 >= r2 ) {
+        var massOverlap = Math.PI* (2*overlap*r2 - overlap2);
+        var newBlob1 = this.gain( blob1, blob2.velocity, massOverlap);
+        var newBlob2 = Object.assign({}, blob2, {
+            'mass': blob2.mass - massOverlap
+        });
+    }
+    else if ( distance <= r2 ) {
+        var newBlob2 = this.gain( blob2, blob1.velocity, blob1.mass);
+        var newBlob1 = Object.assign({}, blob1, {
+            'mass': 0
+        });
+    }
+    else
+    {
+        var massOverlap = Math.PI* (2*overlap*r1 - overlap2);
+        var newBlob2 = this.gain( blob2, blob1.velocity, massOverlap);
+        var newBlob1 = Object.assign({}, blob1, {
+            'mass': blob1.mass - massOverlap
+        });
     }
 
     return [ newBlob1, newBlob2 ];
 },
+'poop': function( blob, vec, mass ) {
+    var newBlob1 = this.loose( blob, vec, mass);
+    var newBlob2 = {
+        'position': Vector.toVec( 0,0),
+        'velocity': vec,
+        'mass': mass
+    };
+    var r1 = this.radius( newBlob1 );
+    var r2 = this.radius( newBlob2 );
+
+    var newPos = Vector.multAdd( 
+        blob.position, 1,
+        Vector.norm( vec), (r1+r2)
+    );
+    newBlob2.position = newPos;
+
+    return [newBlob1, newBlob2];
+},
 'momentum': function(state) {
-    return state.mass * Vector.length(state.velocity);
+    return Vector.mult(state.velocity, state.mass);
 },
 'radius': function(state) {
     return Math.sqrt(state.mass/Math.PI);

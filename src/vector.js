@@ -1,10 +1,30 @@
+/* eslint-env browser*/
 
 const Vector = {
+    'randomDir': function( length ) {
+        var vec = Vector.toVec( Math.random()-0.5, Math.random()-0.5);
+        return this.mult( this.norm( vec ), length );
+    },
+    'random': function( length ) {
+        var vec = Vector.toVec( Math.random()-0.5, Math.random()-0.5);
+        return this.mult( vec, length );
+    },
     'toVec': function(x, y) {
         return {
             'x': x,
             'y': y
         };
+    },
+    'toString': function( vec) {
+        return'< '+vec.x+', '+vec.y+' >';
+    },
+    'equal': function( vec1, vec2) {
+        return (vec1.x == vec2.x) &&
+            (vec1.y == vec2.y );
+    },
+    'tolerantEqual': function( vec1, vec2, tol) {
+        return (Math.abs(vec1.x - vec2.x) < tol) &&
+            ( Math.abs(vec1.y - vec2.y) < tol );
     },
     'length': function(vec) {
         return Math.sqrt( Math.pow(vec.x,2) + Math.pow(vec.y,2) );
@@ -17,6 +37,12 @@ const Vector = {
         return {
             'x': vec.x/len,
             'y': vec.y/len
+        };
+    },
+    'mult': function(vec, m) {
+        return {
+            'x': vec.x*m,
+            'y': vec.y*m
         };
     },
     'add': function(vec1, vec2) {

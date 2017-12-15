@@ -1,12 +1,5 @@
 /* eslint-env browser*/
 
-// import {WorldModel} from ( 'src/world.js');
-
-
-const body = document.getElementsByTagName('body')[0];
-
-var mementumTA = document.getElementById('MomentumTA');
-
 var maxPos = Vector.toVec( 500, 500);
 
 var canvas = document.getElementById('canvas');
@@ -14,69 +7,75 @@ canvas.width = maxPos.x;
 canvas.height = maxPos.y;
 var ctx = canvas.getContext('2d');
 
-var graph = document.getElementById('graph');
-graph.width = maxPos.x;
-graph.height = maxPos.y;
-var gctx = graph.getContext('2d');
-
 var blobCnt = 10;
 var maxMass = 1000;
 var blobs = [];
 
-var momentum = 0;
+var momentum = Vector.toVec(0,0);
+var mass = 0;
 for( var i = 0; i < blobCnt; i++) {
-    blobs.push( Blob.randomise(  maxMass, maxPos, Vector.toVec(500, 500) ) );
-    momentum = momentum + Blob.momentum( blobs[i] );
+    blobs.push( Blob.randomise(  maxMass, maxPos, maxPos) );
 }
 
-var interval = 200;
-var amount = 0.05;
-var position = 0;
-var range = {
-    'min': momentum/2,
-    'max': momentum*2
-}
+var interval = 50;
+var amount = 0.01;
+var intervalCount = 0;
 
-
-setInterval( () => {
-    console.log('tick');
-    ctx.fillStyle = "#FFFFFF";
-    ctx.fillRect(0,0, 500, 500);
-    ctx.fillStyle = "#000000";
-    for( var i = 0; i < blobCnt; i++) {
-        if ( blobs[i].mass <= 0 ) {
-            continue;
-        }
+var timer = setInterval( () => {
+    // Move the blobs
+    for( var i in blobs) {
         blobs[i] = Blob.tick( blobs[i], amount, maxPos);
     }
-    for( var i = 0; i < blobCnt-1; i++) {
+
+    for( var i in blobs) {
         if ( blobs[i].mass <= 0 ) {
             continue;
         }
-        for( var j = i+1; j < blobCnt; j++) {
+        // Collide blobs
+        for( var j in blobs) {
+            if ( j <= i ) {
+                continue;
+            }
             if ( blobs[j].mass <= 0 ) {
                 continue;
             }
-            var tmpBlobs = Blob.overlap( blobs[i], blobs[j] );
+            var tmpBlobs = Blob.collide( blobs[i], blobs[j] );
             blobs[i] = tmpBlobs[0];
             blobs[j] = tmpBlobs[1];
         }
+
+        // Maybe poop
+        var toPoopOrNotToPoop = (Math.random() < 1/50);
+        if ( toPoopOrNotToPoop && blobs[i].mass > 200 ) {
+            var mass = 100;
+
+            var poopVel = 500;
+            var vel = Vector.randomDir( poopVel );
+
+            var tmpBlobs = Blob.poop( blobs[i], vel, mass);
+            blobs[i] = tmpBlobs[0];
+            blobs.push( tmpBlobs[1] );
+        }
     }
-	momentum=0
-    for( var i = 0; i < blobCnt; i++) {
+
+    // Clear canvas
+    ctx.fillStyle = "#FFFFFF";
+    ctx.fillRect(0,0, 500, 500);
+
+    // Draw blobs
+    ctx.fillStyle = "#000000";
+    for( var i in blobs) {
         if ( blobs[i].mass <= 0 ) {
+            delete blobs[i];
             continue;
         }
         Blob.draw( blobs[i], ctx );
-        momentum = momentum + Blob.momentum( blobs[i] );
     }
-    MomentumTA.textContent = momentum;
-	console.log(range);
-    var val = (momentum - range.min)/(range.max - range.min);
-	console.log(momentum, val);
-    gctx.fillStyle = "#0011aa";
-    gctx.fillRect(position*5, val*maxPos.y, 5,10);
-    position++;
+
+    if ( intervalCount > 1000 ) {
+        clearInterval( timer);
+    }
+    intervalCount++;
 
 }, interval);
 
