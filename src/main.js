@@ -54,7 +54,7 @@ pcanvas.onmousemove = (event) => {
     pmouse.buttons = event.buttons;
 };
 
-var blobCnt = 2;
+var blobCnt = 10;
 var maxMass = 1000;
 var blobs = [];
 var playerBlob = {
@@ -159,14 +159,14 @@ var timer = setInterval( () => {
 
     // Clear canvas
     ctx.fillStyle = '#000000';
-    ctx.fillRect(0,0, 500, 500);
+    ctx.fillRect(0,0, maxPos.x, maxPos.y);
     ctx.fillStyle = '#FFFFFF';
-    ctx.fillRect(2,2, 496, 496);
+    ctx.fillRect(2,2, maxPos.x-4, maxPos.y-4);
 
     pctx.fillStyle = '#000000';
-    pctx.fillRect(0,0, 500, 500);
+    pctx.fillRect(0,0, maxPos.x, maxPos.y);
     pctx.fillStyle = '#FFFFFF';
-    pctx.fillRect(2,2, 496, 496);
+    pctx.fillRect(2,2, maxPos.x-4, maxPos.y-4);
 
     // Draw blobs
     ctx.fillStyle = '#000000';
