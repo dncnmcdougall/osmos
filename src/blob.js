@@ -12,29 +12,30 @@ const Blob= {
             'position': {
                 'x': Math.random()*maxPos.x,
                 'y': Math.random()*maxPos.y
-            }
+            },
+            'lastPoop': -500
         };
     },
-    'gain': function(state, vec, mass) {
+    'gain': function(blob, vec, mass) {
 
-        return Object.assign({}, state, {
-            'mass':state.mass+mass,
-            'velocity':Vector.weightedAdd(state.velocity, state.mass, vec, mass)
+        return Object.assign({}, blob, {
+            'mass':blob.mass+mass,
+            'velocity':Vector.weightedAdd(blob.velocity, blob.mass, vec, mass)
             // position does not change
         });
     },
-    'loose': function(state, vec, mass) {
-        return Object.assign({}, state, {
-            'mass':state.mass-mass,
-            'velocity':Vector.weightedAdd(state.velocity, state.mass, vec, -mass)
+    'loose': function(blob, vec, mass) {
+        return Object.assign({}, blob, {
+            'mass':blob.mass-mass,
+            'velocity':Vector.weightedAdd(blob.velocity, blob.mass, vec, -mass)
             // position does not change
         });
     },
-    'tick': function(state, amount, maxPos) {
-        let newState = Object.assign({}, state, {
-            'position':Vector.multAdd(state.position, 1, state.velocity, amount)
+    'tick': function(blob, amount, maxPos) {
+        let newState = Object.assign({}, blob, {
+            'position':Vector.multAdd(blob.position, 1, blob.velocity, amount)
         });
-        let r = this.radius( state );
+        let r = this.radius( blob );
         let r2 = 2*r;
 
         if ( newState.position.x < r ) {
@@ -116,16 +117,64 @@ const Blob= {
 
         return [newBlob1, newBlob2];
     },
-    'momentum': function(state) {
-        return Vector.mult(state.velocity, state.mass);
+    'momentum': function(blob) {
+        return Vector.mult(blob.velocity, blob.mass);
     },
-    'radius': function(state) {
-        return Math.sqrt(state.mass/Math.PI);
+    'radius': function(blob) {
+        return Math.sqrt(blob.mass/Math.PI);
     },
-    'draw': function(state, ctx) {
-        let r = this.radius(state);
+    'relative': function( blob, otherBlob){
+        let forward = null;
+        if ( Vector.length( blob.velocity) < 1e-6)
+        {
+            forward = Vector.toVec(0,1);
+        }
+        else
+        {
+            forward = Vector.norm( blob.velocity);
+        }
+        let relPos = Vector.multAdd(blob.position, 1, otherBlob.position,-1); 
+        let relDir = Vector.norm(relPos); 
+
+        let radius = Vector.length( relPos );
+        let angle = Math.acos( Vector.dot( forward, relDir) );
+
+        let cross  =forward.x*relPos.y - forward.y*relPos.x;
+        if ( cross < 0 ) {
+            angle = -angle;
+        }
+
+        let radialVel = Vector.dot( relDir, otherBlob.velocity);
+        let tangentalVel = Vector.multAdd( otherBlob.velocity, 1, radialVel, -1);
+
+        return {
+            'radius': radius,
+            'angle': angle,
+            'radialVelocity': radialVel,
+            'tangentalVelocity': tangentalVel
+        };
+    },
+    'draw': function(blob, ctx) {
+        let r = this.radius(blob);
         ctx.beginPath();
-        ctx.arc(state.position.x,state.position.y,  r, 0, 2*Math.PI);
+        ctx.arc(blob.position.x,blob.position.y,  r, 0, 2*Math.PI);
+        ctx.fill();
+    },
+    'drawCentre': function(blob, ctx, bounds) {
+        let r = this.radius(blob);
+        ctx.beginPath();
+        ctx.arc(bounds.x/2,bounds.y/2,  r, 0, 2*Math.PI);
+        ctx.fill();
+    },
+    'drawRelative': function(blob, otherBlob, ctx, bounds) {
+
+        var relativePosition =  this.relative( playerBlob, otherBlob );
+        var y = relativePosition.radius* Math.cos(relativePosition.angle);
+        var x = relativePosition.radius* Math.sin(relativePosition.angle);
+
+        let otherR = this.radius(otherBlob);
+        ctx.beginPath();
+        ctx.arc(bounds.x/2+x,bounds.y/2 + y,  otherR, 0, 2*Math.PI);
         ctx.fill();
     }
 };

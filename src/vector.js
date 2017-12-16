@@ -34,10 +34,19 @@ const Vector = {
     },
     'norm': function(vec) {
         let len = this.length(vec);
+        if ( len < 1e-6 ) {
+            return {
+                'x': 0,
+                'y': 0
+            };
+        }
         return {
             'x': vec.x/len,
             'y': vec.y/len
         };
+    },
+    'dot': function( vec1, vec2) {
+        return vec1.x*vec2.x + vec1.y*vec2.y;
     },
     'mult': function(vec, m) {
         return {
