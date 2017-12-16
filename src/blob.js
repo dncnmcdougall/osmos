@@ -125,12 +125,9 @@ const Blob= {
     },
     'relative': function( blob, otherBlob){
         let forward = null;
-        if ( Vector.length( blob.velocity) < 1e-6)
-        {
-            forward = Vector.toVec(0,1);
-        }
-        else
-        {
+        if ( Vector.length( blob.velocity) < 1e-6) {
+            forward = Vector.toVec(0,-1);
+        } else {
             forward = Vector.norm( blob.velocity);
         }
         let relPos = Vector.multAdd(blob.position, 1, otherBlob.position,-1); 
@@ -140,7 +137,7 @@ const Blob= {
         let angle = Math.acos( Vector.dot( forward, relDir) );
 
         let cross  =forward.x*relPos.y - forward.y*relPos.x;
-        if ( cross < 0 ) {
+        if ( cross > 0 ) {
             angle = -angle;
         }
 
@@ -174,7 +171,7 @@ const Blob= {
 
         let otherR = this.radius(otherBlob);
         ctx.beginPath();
-        ctx.arc(bounds.x/2+x,bounds.y/2 + y,  otherR, 0, 2*Math.PI);
+        ctx.arc(bounds.x/2+x,bounds.y/2+y,  otherR, 0, 2*Math.PI);
         ctx.fill();
     }
 };
