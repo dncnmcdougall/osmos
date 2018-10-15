@@ -57,6 +57,8 @@ pcanvas.onmousemove = (event) => {
 var blobCnt = 10;
 var maxMass = 1000;
 var blobs = [];
+var blobAIs = [];
+
 var playerBlob = {
     'position': Vector.mult( maxPos, 0.5),
     'velocity': Vector.toVec(0,0),
@@ -74,8 +76,8 @@ var poopVelocity = 1000;
 
 for( var i = 0; i < blobCnt; i++) {
     blobs.push( Blob.randomise(  maxMass, maxPos, maxPos) );
+    blobAIs.push( RandomBlob );
 }
-
 
 var timer = setInterval( () => {
     // Move the blobs
@@ -85,41 +87,22 @@ var timer = setInterval( () => {
         blobs[i] = Blob.tick( blobs[i], amount, maxPos);
     }
 
-    if ( (playerBlob.mass > minPoopMass) && 
-        (intervalCount - playerBlob.lastPoop) > poopInterval ) {
-        if ((mouse.buttons != 0) ) {
+    // Maybe player poop
+    if ( (playerBlob.mass > minPoopMass) &&
+        (intervalCount - playerBlob.lastPoop) > poopInterval) {
 
-            var vel = Vector.norm(Vector.multAdd( mouse.position, 1, playerBlob.position, -1 ));
-            vel = Vector.mult( vel, poopVelocity);
+        var vec = PlayerBlob.poopFunction(playerBlob, -1, blobs);
 
-            let tmpBlobs = Blob.poop( playerBlob, vel, poopMass);
+        if ( vec ) {
+            let tmpBlobs = Blob.poop( playerBlob, vec, poopMass);
             playerBlob = tmpBlobs[0];
-            blobs.push( tmpBlobs[1] );
             playerBlob.lastPoop = intervalCount;
-        } else if ( pmouse.buttons != 0 ) {
-            var relativeVec = Vector.multAdd( Vector.mult( maxPos, 1/2), -1, pmouse.position, 1);
-            let forward = null;
-            if ( Vector.length( playerBlob.velocity) < 1e-6) {
-                forward = Vector.toVec(0,-1);
-            } else {
-                forward = Vector.norm( playerBlob.velocity);
-            }
-            let right = {
-                'x': forward.y,
-                'y': -forward.x
-            };
-            actualVec = Vector.norm(Vector.multAdd( forward,  -relativeVec.y, right, -relativeVec.x));
-
-            actualVec = Vector.mult( actualVec, poopVelocity);
-
-            let tmpBlobs = Blob.poop( playerBlob, actualVec, poopMass);
-            playerBlob = tmpBlobs[0];
-            blobs.push( tmpBlobs[1] );
-            playerBlob.lastPoop = intervalCount;
-
+            blobs.push( tmpBlobs[1] ); 
+            blobAIs.push( PassiveBlob );
         }
     }
 
+    // Update blobs
     for( i in blobs) {
         if ( blobs[i].mass <= 0 ) {
             continue;
@@ -143,17 +126,18 @@ var timer = setInterval( () => {
         }
 
         // Maybe poop
-        var toPoopOrNotToPoop = (Math.random() < 1/50);
-        if ( toPoopOrNotToPoop && 
-            (blobs[i].mass > minPoopMass) &&
+        if ( (blobs[i].mass > minPoopMass) &&
             (intervalCount - blobs[i].lastPoop) > poopInterval) {
 
-            var vel = Vector.randomDir( poopVelocity );
+            var vec = blobAIs[i].poopFunction(blobs[i], i, blobs);
 
-            let tmpBlobs = Blob.poop( blobs[i], vel, poopMass);
-            blobs[i] = tmpBlobs[0];
-            blobs.push( tmpBlobs[1] );
-            blobs[i].lastPoop = intervalCount;
+            if ( vec ) {
+                let tmpBlobs = Blob.poop( blobs[i], vec, poopMass);
+                blobs[i] = tmpBlobs[0];
+                blobs[i].lastPoop = intervalCount;
+                blobs.push( tmpBlobs[1] ); 
+                blobAIs.push( PassiveBlob );
+            }
         }
     }
 
@@ -169,13 +153,15 @@ var timer = setInterval( () => {
     pctx.fillRect(2,2, maxPos.x-4, maxPos.y-4);
 
     // Draw blobs
-    ctx.fillStyle = '#000000';
-    pctx.fillStyle = '#000000';
     for( i in blobs) {
         if ( blobs[i].mass <= 0 ) {
             delete blobs[i];
+            delete blobAIs[i];
             continue;
         }
+        ctx.fillStyle = blobAIs[i].colour;
+        pctx.fillStyle = blobAIs[i].colour;
+
         Blob.draw( blobs[i], ctx );
         Blob.drawRelative( playerBlob, blobs[i], pctx, maxPos );
     }
@@ -185,15 +171,13 @@ var timer = setInterval( () => {
         clearInterval( timer);
         return;
     }
-    ctx.fillStyle = '#0000aa';
-    pctx.fillStyle = '#0000aa';
+
+    // Draw player
+    ctx.fillStyle = PlayerBlob.colour;
+    pctx.fillStyle = PlayerBlob.colour;
     Blob.draw( playerBlob, ctx );
     Blob.drawCentre( playerBlob, pctx, maxPos );
 
-    // if ( intervalCount > 100 ) {
-    //     clearInterval( timer);
-    // }
     intervalCount++;
-
 }, interval);
 
