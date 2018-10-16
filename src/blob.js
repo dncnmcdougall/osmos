@@ -165,7 +165,7 @@ const Blob= {
     },
     'drawRelative': function(blob, otherBlob, ctx, bounds) {
 
-        var relativePosition =  this.relative( playerBlob, otherBlob );
+        var relativePosition =  this.relative( blob, otherBlob );
         var y = relativePosition.radius* Math.cos(relativePosition.angle);
         var x = relativePosition.radius* Math.sin(relativePosition.angle);
 

@@ -1,7 +1,7 @@
 /* eslint-env browser*/
 /* global Vector, Blob*/
 
-var maxPos = Vector.toVec( 500, 500);
+var maxPos = Vector.toVec( 700, 700);
 
 var canvas = document.getElementById('canvas');
 canvas.width = maxPos.x;
@@ -59,13 +59,6 @@ var maxMass = 1000;
 var blobs = [];
 var blobAIs = [];
 
-var playerBlob = {
-    'position': Vector.mult( maxPos, 0.5),
-    'velocity': Vector.toVec(0,0),
-    'mass': maxMass*0.8,
-    'lastPoop': -500
-};
-
 var interval = 50;
 var amount = 0.01;
 var intervalCount = 0;
@@ -75,31 +68,27 @@ var poopMass = 100;
 var poopVelocity = 1000;
 
 for( var i = 0; i < blobCnt; i++) {
-    blobs.push( Blob.randomise(  maxMass, maxPos, maxPos) );
-    blobAIs.push( RandomBlob );
+    if ( i == 0 ) {
+        blobs.push( {
+            'position': Vector.mult( maxPos, 0.5),
+            'velocity': Vector.toVec(0,0),
+            'mass': maxMass*0.8,
+            'lastPoop': -500
+        });
+        blobAIs.push( PlayerBlob );
+    }
+    else
+    {
+        blobs.push( Blob.randomise(  maxMass, maxPos, maxPos) );
+        blobAIs.push( RandomBlob );
+    }
 }
 
 var timer = setInterval( () => {
     // Move the blobs
     let i = 0;
-    playerBlob = Blob.tick( playerBlob, amount, maxPos);
     for( i in blobs) {
         blobs[i] = Blob.tick( blobs[i], amount, maxPos);
-    }
-
-    // Maybe player poop
-    if ( (playerBlob.mass > minPoopMass) &&
-        (intervalCount - playerBlob.lastPoop) > poopInterval) {
-
-        var vec = PlayerBlob.poopFunction(playerBlob, -1, blobs);
-
-        if ( vec ) {
-            let tmpBlobs = Blob.poop( playerBlob, vec, poopMass);
-            playerBlob = tmpBlobs[0];
-            playerBlob.lastPoop = intervalCount;
-            blobs.push( tmpBlobs[1] ); 
-            blobAIs.push( PassiveBlob );
-        }
     }
 
     // Update blobs
@@ -107,9 +96,6 @@ var timer = setInterval( () => {
         if ( blobs[i].mass <= 0 ) {
             continue;
         }
-        let tmpBlobs = Blob.collide( playerBlob, blobs[i] );
-        playerBlob = tmpBlobs[0];
-        blobs[i] = tmpBlobs[1];
 
         // Collide blobs
         let j = 0;
@@ -155,28 +141,27 @@ var timer = setInterval( () => {
     // Draw blobs
     for( i in blobs) {
         if ( blobs[i].mass <= 0 ) {
-            delete blobs[i];
-            delete blobAIs[i];
+            if ( i == 0 ) {
+                clearInterval( timer);
+            }
+            else
+            {
+                delete blobs[i];
+                delete blobAIs[i];
+            }
             continue;
         }
         ctx.fillStyle = blobAIs[i].colour;
         pctx.fillStyle = blobAIs[i].colour;
 
         Blob.draw( blobs[i], ctx );
-        Blob.drawRelative( playerBlob, blobs[i], pctx, maxPos );
+        if ( i == 0 )
+        {
+            Blob.drawCentre( blobs[0], pctx, maxPos );
+        } else {
+            Blob.drawRelative( blobs[0], blobs[i], pctx, maxPos );
+        }
     }
-
-    if ( playerBlob.mass <= 0 ) {
-        playerBlob = null;
-        clearInterval( timer);
-        return;
-    }
-
-    // Draw player
-    ctx.fillStyle = PlayerBlob.colour;
-    pctx.fillStyle = PlayerBlob.colour;
-    Blob.draw( playerBlob, ctx );
-    Blob.drawCentre( playerBlob, pctx, maxPos );
 
     intervalCount++;
 }, interval);
