@@ -56,8 +56,6 @@ pcanvas.onmousemove = (event) => {
 
 var blobCnt = 10;
 var maxMass = 1000;
-var blobs = [];
-var blobAIs = [];
 
 var interval = 50;
 var amount = 0.01;
@@ -66,6 +64,9 @@ var poopInterval = 5;
 var minPoopMass = 200;
 var poopMass = 100;
 var poopVelocity = 1000;
+
+var blobs = [];
+var blobAIs = [];
 
 for( var i = 0; i < blobCnt; i++) {
     if ( i == 0 ) {
@@ -83,6 +84,24 @@ for( var i = 0; i < blobCnt; i++) {
         blobAIs.push( RandomBlob );
     }
 }
+
+var boundaries = [];
+boundaries.push({
+            'position': Vector.toVec(0,0),
+            'velocity': Vector.toVec(0,0),
+            'mass': 0,
+            'lastPoop': -500
+        });
+boundaries.push(Object.assign({}, boundaries[0], {
+            'position': Vector.toVec(maxPos.x,0),
+}));
+boundaries.push(Object.assign({}, boundaries[0], {
+            'position': Vector.toVec(maxPos.x,maxPos.y),
+}));
+boundaries.push(Object.assign({}, boundaries[0], {
+            'position': Vector.toVec(0,maxPos.y),
+}));
+
 
 var timer = setInterval( () => {
     // Move the blobs
@@ -133,10 +152,8 @@ var timer = setInterval( () => {
     ctx.fillStyle = '#FFFFFF';
     ctx.fillRect(2,2, maxPos.x-4, maxPos.y-4);
 
-    pctx.fillStyle = '#000000';
-    pctx.fillRect(0,0, maxPos.x, maxPos.y);
     pctx.fillStyle = '#FFFFFF';
-    pctx.fillRect(2,2, maxPos.x-4, maxPos.y-4);
+    pctx.fillRect(0,0, maxPos.x, maxPos.y);
 
     // Draw blobs
     for( i in blobs) {
@@ -162,6 +179,23 @@ var timer = setInterval( () => {
             Blob.drawRelative( blobs[0], blobs[i], pctx, maxPos );
         }
     }
+
+    var relativePoints = boundaries.map( (boundary) => {
+        var relativePosition = Blob.relative(blobs[0], boundary);
+        var y = relativePosition.radius* Math.cos(relativePosition.angle);
+        var x = relativePosition.radius* Math.sin(relativePosition.angle);
+        return Vector.toVec(x,y);
+    });
+
+    pctx.strokeStyle = '#000000';
+    pctx.beginPath();
+    pctx.moveTo(maxPos.x/2+relativePoints[0].x, maxPos.y/2+relativePoints[0].y);
+    pctx.lineTo(maxPos.x/2+relativePoints[1].x, maxPos.y/2+relativePoints[1].y);
+    pctx.lineTo(maxPos.x/2+relativePoints[2].x, maxPos.y/2+relativePoints[2].y);
+    pctx.lineTo(maxPos.x/2+relativePoints[3].x, maxPos.y/2+relativePoints[3].y);
+    pctx.lineTo(maxPos.x/2+relativePoints[0].x, maxPos.y/2+relativePoints[0].y);
+    pctx.stroke();
+
 
     intervalCount++;
 }, interval);
